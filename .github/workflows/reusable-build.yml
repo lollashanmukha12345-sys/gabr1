@@ -1,4 +1,5 @@
-name: Reusable Node.js Build
+```yaml
+name: Reusable Node.js Build & Deploy
 
 on:
   workflow_call:
@@ -9,14 +10,46 @@ on:
         description: "The version of Node.js to use"
 
 jobs:
-  build:
+  build-test-deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ inputs.node_version }} # Uses the dynamic input!
-      - run: npm install
-      - run: npm test
+          node-version: ${{ inputs.node_version }}
 
+      - name: Install Dependencies
+        run: npm install
 
+      - name: Run Unit Tests
+        run: npm test
+
+      - name: Build Application
+        run: npm run build
+
+      - name: Deploy to Production
+        id: deploy_step
+        run: ./deploy.sh
+
+      # Executes only if any previous step fails
+      - name: Send Slack Alert
+        if: failure()
+        run: |
+          ./send-slack-alert.sh "Production deployment failed. Immediate attention required."
+
+      # Executes only if deployment step failed
+      - name: Automatic Rollback
+        if: failure() && steps.deploy_step.outcome == 'failure'
+        run: |
+          ./rollback-to-previous-version.sh
+
+      # Optional Success Notification
+      - name: Deployment Success Notification
+        if: success()
+        run: |
+          echo "Deployment completed successfully"
+```
