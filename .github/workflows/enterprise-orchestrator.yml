@@ -3,7 +3,13 @@ name:  NodeJs
 on:
   push:
      branch: master
- 
+
+permissions:
+   security-events: write
+   issues: write
+   actions: read
+   contents: read
+
 jobs:
   Build-Test:
     runs-on:  ubuntu-latest
