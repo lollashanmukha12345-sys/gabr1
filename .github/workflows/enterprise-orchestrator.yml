@@ -3,7 +3,9 @@ name:  NodeJs
 on: 
   push:
      branch: master
-  
+
+permissions: read-all
+
 jobs: 
   Build-Test: 
     runs-on:  ubuntu-latest
